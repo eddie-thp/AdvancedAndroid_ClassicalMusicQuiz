@@ -27,7 +27,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -44,9 +44,6 @@ import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
 
-
-
-
 public class QuizActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final int CORRECT_ANSWER_DELAY_MILLIS = 1000;
@@ -59,8 +56,8 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
     private int mHighScore;
     private Button[] mButtons;
 
-    SimpleExoPlayer mSimpleExoPlayer;
-    SimpleExoPlayerView mSimpleExoPlayerView;
+    private SimpleExoPlayer mSimpleExoPlayer;
+    private SimpleExoPlayerView mSimpleExoPlayerView;
 
 
     @Override
@@ -70,6 +67,8 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
 
         // DONE (2): Replace the ImageView with the SimpleExoPlayerView, and remove the method calls on the composerView.
         mSimpleExoPlayerView = (SimpleExoPlayerView) findViewById(R.id.playerView);
+
+        // TODO (1): Create a layout file called exo_playback_control_view to override the playback control layout.
 
         boolean isNewGame = !getIntent().hasExtra(REMAINING_SONGS_KEY);
 
@@ -91,6 +90,7 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
         mAnswerSampleID = QuizUtils.getCorrectAnswerID(mQuestionSampleIDs);
 
         // DONE (3): Replace the default artwork in the SimpleExoPlayerView with the question mark drawable.
+        // Load the question mark as the background image until the user answers the question.
         mSimpleExoPlayerView.setDefaultArtwork(BitmapFactory.decodeResource(getResources(), R.drawable.question_mark));
 
         // If there is only one answer left, end the game.
@@ -104,13 +104,22 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
 
         // DONE (4): Create a Sample object using the Sample.getSampleByID() method and passing in mAnswerSampleID;
         Sample sample = Sample.getSampleByID(this, mAnswerSampleID);
+        if (sample == null) {
+            Toast.makeText(this, getString(R.string.sample_not_found_error),
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         // DONE (5): Create a method called initializePlayer() that takes a Uri as an argument and call it here, passing in the Sample URI.
         initializePlayer(sample.getUri());
 
     }
 
 
-    // In initializePayer
+    /**
+     * Initialize ExoPlayer.
+     * @param uri The URI of the sample to play.
+     */
     public void initializePlayer(String uri) {
         if (mSimpleExoPlayer == null) {
             // DONE (6): Instantiate a SimpleExoPlayer object using DefaultTrackSelector and DefaultLoadControl.
@@ -130,9 +139,7 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
             mSimpleExoPlayer.prepare(mediaSource);
             mSimpleExoPlayer.setPlayWhenReady(true);
         }
-
     }
-
 
     /**
      * Initializes the button to the correct views, and sets the text to the composers names,
@@ -153,6 +160,18 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
         return buttons;
+    }
+
+
+    /**
+     * Release ExoPlayer.
+     */
+    private void releasePlayer() {
+        if (mSimpleExoPlayer != null) {
+            mSimpleExoPlayer.stop();
+            mSimpleExoPlayer.release();
+            mSimpleExoPlayer = null;
+        }
     }
 
 
@@ -203,27 +222,27 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
             public void run() {
                 // DONE (9): Stop the playback when you go to the next question.
                 mSimpleExoPlayer.stop();
-
                 Intent nextQuestionIntent = new Intent(QuizActivity.this, QuizActivity.class);
                 nextQuestionIntent.putExtra(REMAINING_SONGS_KEY, mRemainingSampleIDs);
                 finish();
                 startActivity(nextQuestionIntent);
             }
         }, CORRECT_ANSWER_DELAY_MILLIS);
-
     }
 
     /**
-     * Disables the buttons and changes the background colors to show the correct answer.
+     * Disables the buttons and changes the background colors and player art to
+     * show the correct answer.
      */
     private void showCorrectAnswer() {
+        // DONE (10): Change the default artwork in the SimpleExoPlayerView to show the picture of the composer, when the user has answered the question.
+        mSimpleExoPlayerView.setDefaultArtwork(Sample.getComposerArtBySampleID(this, mAnswerSampleID));
+
         for (int i = 0; i < mQuestionSampleIDs.size(); i++) {
             int buttonSampleID = mQuestionSampleIDs.get(i);
 
-            // DONE (10): Change the default artwork in the SimpleExoPlayerView to show the picture of the composer, when the user has answered the question.
-            mSimpleExoPlayerView.setDefaultArtwork(Sample.getComposerArtBySampleID(this, mAnswerSampleID));
-
             mButtons[i].setEnabled(false);
+
             if (buttonSampleID == mAnswerSampleID) {
                 mButtons[i].getBackground().setColorFilter(ContextCompat.getColor
                                 (this, android.R.color.holo_green_light),
@@ -234,20 +253,18 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
                                 (this, android.R.color.holo_red_light),
                         PorterDuff.Mode.MULTIPLY);
                 mButtons[i].setTextColor(Color.WHITE);
-
             }
         }
     }
 
     // DONE (11): Override onDestroy() to stop and release the player when the Activity is destroyed.
 
+    /**
+     * Release the player when the activity is destroyed.
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mSimpleExoPlayer != null) {
-            mSimpleExoPlayer.stop();
-            mSimpleExoPlayer.release();
-            mSimpleExoPlayer = null;
-        }
+        releasePlayer();
     }
 }
