@@ -44,6 +44,7 @@ import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
 
+// TODO (1): Have this Activity implement ExoPlayer.EventListener and add the required methods.
 public class QuizActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final int CORRECT_ANSWER_DELAY_MILLIS = 1000;
@@ -66,6 +67,7 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_quiz);
 
         // DONE (2): Replace the ImageView with the SimpleExoPlayerView, and remove the method calls on the composerView.
+        // Initialize the player view.
         mSimpleExoPlayerView = (SimpleExoPlayerView) findViewById(R.id.playerView);
 
         boolean isNewGame = !getIntent().hasExtra(REMAINING_SONGS_KEY);
@@ -265,4 +267,6 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
         super.onDestroy();
         releasePlayer();
     }
+
+    // TODO (3): Add conditional logging statements to the onPlayerStateChanged() method that log when ExoPlayer is playing or paused.
 }
