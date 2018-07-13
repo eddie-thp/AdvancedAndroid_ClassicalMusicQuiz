@@ -460,7 +460,7 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
                     mSimpleExoPlayer.getCurrentPosition(), 1f);
         }
         mMediaSession.setPlaybackState(mStateBuilder.build());
-        
+
         // DONE (2): Call the method to show the notification, passing in the PlayBackStateCompat object.
         showNotification(mStateBuilder.build());
     }
@@ -495,4 +495,6 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
+    // TODO (1): Create a static inner class that extends Broadcast Receiver and implement the onReceive() method.
+    // TODO (2): Call MediaButtonReceiver.handleIntent and pass in the incoming intent as well as the MediaSession object to forward the intent to the MediaSession.Callbacks.
 }
