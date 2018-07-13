@@ -75,7 +75,10 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
     PlaybackStateCompat.Builder mStateBuilder;
 
     // DONE (2): Create an inner class that extends MediaSessionCompat.Callbacks, and override the onPlay(), onPause(), and onSkipToPrevious() callbacks. Pass an instance of this class into the MediaSession.setCallback() method in the method you created in step 1.
-    class MySessionCallback extends MediaSessionCompat.Callback {
+    /**
+     * Media Session Callbacks, where all external clients control the player.
+     */
+    private class MySessionCallback extends MediaSessionCompat.Callback {
 
         @Override
         public void onPlay() {
@@ -92,7 +95,6 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
             mSimpleExoPlayer.seekTo(0);
         }
     }
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -236,6 +238,8 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
+    // TODO (1): Create a method that shows a MediaStyle notification with two actions (play/pause, skip to previous). Clicking on the notification should launch this activity. It should take one argument that defines the state of MediaSession.
+
     /**
      * Release ExoPlayer.
      */
@@ -362,6 +366,13 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
 
     // DONE (3): Add conditional logging statements to the onPlayerStateChanged() method that log when ExoPlayer is playing or paused.
 
+    /**
+     * Method that is called when the ExoPlayer state changes. Used to update the MediaSession
+     * PlayBackState to keep in sync.
+     * @param playWhenReady true if ExoPlayer is playing, false if it's paused.
+     * @param playbackState int describing the state of ExoPlayer. Can be STATE_READY, STATE_IDLE,
+     *                      STATE_BUFFERING, or STATE_ENDED.
+     */
     @Override
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
         String stateString = "";
@@ -393,6 +404,9 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
             mStateBuilder.setState(PlaybackStateCompat.STATE_PAUSED,
                     mSimpleExoPlayer.getCurrentPosition(), 1f);
         }
+        mMediaSession.setPlaybackState(mStateBuilder.build());
+        
+        // TODO (2): Call the method to show the notification, passing in the PlayBackStateCompat object.
     }
 
     @Override
@@ -424,4 +438,5 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
     public void onSeekProcessed() {
 
     }
+
 }
